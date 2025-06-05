@@ -1,0 +1,7 @@
+docling==2.36.0
+python-dotenv==1.1.0
+mistralai==1.8.1
+langchain==0.3.25
+langgraph==0.4.8
+easyocr==1.7.2
+openai==1.84.0
