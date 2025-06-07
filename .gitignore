@@ -5,6 +5,7 @@ job-blueprint-project
 __pycache__/
 *.pyc
 model/
+*.pdf
 
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
