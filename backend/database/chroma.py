@@ -4,7 +4,7 @@ from langchain.schema import Document
 import pandas as pd
 import os
 from uuid import uuid4
-
+import datetime
 async def embedding_to_chroma():
     df = pd.read_csv("database/Data for Test movie_dataset - AI Engineer.csv")
     OPENAI_KEY = os.getenv("OPENAI_API_KEY")

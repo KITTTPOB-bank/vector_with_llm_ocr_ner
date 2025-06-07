@@ -17,9 +17,6 @@ from database.chroma import embedding_to_chroma
 import asyncio
 
 load_dotenv()
-
-from contextlib import asynccontextmanager
-
 app = FastAPI()
 
 app.add_middleware(
@@ -33,6 +30,7 @@ app.add_middleware(
 MAX_CONTEXT_MESSAGES = 15  
 SUMMARY_TRIGGER_THRESHOLD = 30 
 tools = factory.create_tool()
+tools_movie = factory.create_movie_tool()
 
 async def summarize_messages(all_msg: list[AnyMessage]) -> str:
     messages = []
@@ -87,8 +85,9 @@ async def chat_stream(conversation : model.ChatMessages):
 @app.post("/chatMovie")
 async def chat_stream(conversation : model.ChatMessages):
     messages = []
+    tools_choice = tools_movie
     messages = await summarize_messages(conversation.messages)
-    return StreamingResponse(stream(messages), media_type="text/event-stream")
+    return StreamingResponse(stream(messages, tools_choice), media_type="text/event-stream")
 
 
 @app.post("/course")
@@ -114,11 +113,11 @@ async def extract_text(
     filename  = file.filename
     save_path = os.path.join(SAVE_DIR, filename)
 
-    # if os.path.exists(save_path):
-    #     raise HTTPException(
-    #         status_code=400,
-    #         detail=f"ไฟล์ '{filename}' มีอยู่แล้วในระบบ"
-    #     )
+    if os.path.exists(save_path):
+        raise HTTPException(
+            status_code=400,
+            detail=f"ไฟล์ '{filename}' มีอยู่แล้วในระบบ"
+        )
 
 
     content = await file.read()
@@ -177,13 +176,12 @@ async def clear_data():
 async def update_index():
     status1 = await moive_to_db()
     status2 = await embedding_to_chroma()
-    return {"message": f"Index updated successfully. {''} / {status2}"}
+    return {"message": f"Index updated successfully. {status1} / {status2}"}
 
 
 @app.post("/rerank")
 async def rerank(query: str):
     search = await hybrid_search(query)
- 
     return search
 
 

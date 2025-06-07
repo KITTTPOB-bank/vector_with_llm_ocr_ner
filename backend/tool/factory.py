@@ -1,12 +1,12 @@
 import json
 from types import CoroutineType
 from typing import Type, Union
-from elastic_transport import ObjectApiResponse
 from langchain_core.tools import StructuredTool
 from pydantic import BaseModel
 from database.elastic import connect
+from libs.retrieval import hybrid_search
 import json
- 
+from datetime import datetime
 def structool(name : str, desc : str, func :  CoroutineType,   args: Union[Type[BaseModel], None] = None) -> StructuredTool:
     tool = StructuredTool.from_function(
         coroutine=func,
@@ -17,10 +17,22 @@ def structool(name : str, desc : str, func :  CoroutineType,   args: Union[Type[
     return tool
 
  
+def create_movie_tool() -> list[StructuredTool]:
+    tools = []
+
+    async def get_movie(query: str) -> str:
+        responed = await hybrid_search(query)
+        return str(responed)
+
+    tools.append(structool(
+        "get_movie",
+        "ส่งคำค้นหา เป็นรูปแบบ ภาษาอังกฤษ เน้นเป็น keyword.",
+        get_movie
+    ))
+    return tools
 
 def create_tool() -> list[StructuredTool]:
     tools = []
- 
 
     async def recommend_skill_for_position(position: str) -> str:
         es = await connect()
@@ -44,7 +56,6 @@ def create_tool() -> list[StructuredTool]:
         }
     }
         res = await es.search(index="resumes", body=query)
-        print(res)
         aggregations = res.get("aggregations", {})
 
         if not aggregations:
@@ -90,16 +101,11 @@ def create_tool() -> list[StructuredTool]:
             return json.dumps(results, ensure_ascii=False)
         except Exception as e:
             return str(e)
+        
+    async def popular_field_by_year(year: int, field: str, size: int = 3) -> str:
+        es = await connect()
 
-    async def search_es(index: str, query: dict = {}) -> str:
-        es = await connect()
-        try:
-            response = await es.search(index=index, body=query)
-            return json.dumps(response, ensure_ascii=False)
-        except Exception as e:
-            return str(e)
-    async def popular_skills_by_year(year: int) -> str:
-        es = await connect()
+        agg_field = f"{field}.keyword"
 
         query_agg = {
             "size": 0,
@@ -109,11 +115,50 @@ def create_tool() -> list[StructuredTool]:
                 }
             },
             "aggs": {
+                "popular_items": {
+                    "terms": {
+                        "field": agg_field,
+                        "size": size,
+                        "order": {"_count": "desc"}
+                    }
+                }
+            }
+        }
+
+        res = await es.search(index="resumes", body=query_agg)
+        agg = res.get("aggregations", {})
+        popular_items = [bucket["key"] for bucket in agg.get("popular_items", {}).get("buckets", [])]
+
+        return json.dumps({
+            "year": year,
+            "field": field,
+            "top": size,
+            "most_popular_items": popular_items
+        }, ensure_ascii=False)
+    
+    async def job_blueprint(year: int, keyword: str) -> str:
+        es = await connect()
+
+        query_agg = {
+            "size": 0,
+            "query": {
+                "bool": {
+                    "must": [
+                        {"term": {"year": year}},
+                        {
+                            "multi_match": {
+                                "query": keyword,
+                                "fields": ["position", "desired_job", "skill"]
+                            }
+                        }
+                    ]
+                }
+            },
+            "aggs": {
                 "popular_skills": {
                     "terms": {
                         "field": "skill.keyword",
-                        "size": 10,
-                        "order": {"_count": "desc"}
+                        "size": 10
                     }
                 },
                 "positions": {
@@ -125,14 +170,14 @@ def create_tool() -> list[StructuredTool]:
                         "top_skills": {
                             "terms": {
                                 "field": "skill.keyword",
-                                "size": 5,
-                                "order": {"_count": "desc"}
+                                "size": 5
                             }
                         }
                     }
                 }
             }
         }
+
         res = await es.search(index="resumes", body=query_agg)
         agg = res.get("aggregations", {})
 
@@ -146,38 +191,31 @@ def create_tool() -> list[StructuredTool]:
 
         return json.dumps({
             "year": year,
+            "keyword": keyword,
             "most_popular_skills_overall": popular_skills,
             "positions_top_skills": positions_skills
         }, ensure_ascii=False)
     
- 
+    tools.append(structool(
+        name="popular_skills_by_year",
+        description=f"For a given year and keyword, summarize the most demanded skills overall and by job position. Current time: {datetime.now()}",
+        func=job_blueprint
+    ))
+    
+    tools.append(structool(
+        "popular_field_by_year",
+        f"Get top N popular values for a given field in the resume index for a specific year. "
+        f"Parameters: year (int), field (e.g., 'skill', 'position', 'desired_job'), size (optional, int, default=3). "
+        f"Date now: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
+        popular_field_by_year
+    ))
 
     tools.append(structool(
         "search_courses_by_skills",
-        "Search courses that teach any of the given skills.",
+        "Search courses that teach any of the given skills. ",
+        
         search_courses_by_skills
     ))
-
-    # tools.append(structool(
-    #     "search_es",
-    #     (
-    #         "Execute an Elasticsearch query on a given index and return raw results as JSON.\n"
-    #         "The query parameter must be a valid Elasticsearch DSL JSON.\n\n"
-    #         "Database schemas:\n"
-    #         "1) Index 'courses':\n"
-    #         "   - skill: list of skill strings (e.g. ['TypeScript', 'Next.js'])\n"
-    #         "   - course_name: string\n\n"
-    #         "2) Index 'resumes':\n"
-    #         "   - skill: list of skill strings\n"
-    #         "   - year: integer (e.g. 2023)\n"
-    #         "   - position: string (job title)\n"
-    #         "   - desired_job: string\n"
-    #         "   - has_worked: boolean\n\n"
-    #         "Example query to search courses by skills:\n"
-    #         '{ "query": { "bool": { "should": [ {"term": {"skill.keyword": "Next.js"}}, {"term": {"skill.keyword": "TypeScript"}} ] } } }'
-    #     ),
-    #     search_es
-    # ))
 
     tools.append(structool(
         "recommend_skill_for_position",
@@ -185,10 +223,5 @@ def create_tool() -> list[StructuredTool]:
         recommend_skill_for_position
     ))
 
-    # tools.append(structool(
-    #     "popular_skills_by_year",
-    #     "For a given year, summarize the most demanded skills overall and by job position.",
-    #     popular_skills_by_year
-    # ))
 
     return tools

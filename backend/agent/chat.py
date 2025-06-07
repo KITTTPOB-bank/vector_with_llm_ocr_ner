@@ -41,6 +41,7 @@ def call_agent(tools : list[StructuredTool]):
 
 
     async def call_model(state : State):
+ 
         messages = state["messages"]
         print(messages[-1].content)
         model =  llm.bind_tools(tools)
