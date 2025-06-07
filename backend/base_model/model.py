@@ -14,6 +14,7 @@ class CourseExtraction(BaseModel):
 
 class Course(BaseModel):
     name: str = Field(default="สร้าง Real-Time Web App ด้วย Socket.io, Next.js")
+    link: str = Field(default="https://www.skilllane.com/courses/MySQL-Real-time-Web-App")
     course_detail: str = Field(default="""
     - สามารถเขียนโค้ดด้วยภาษา TypeScript ได้
     - เรียนรู้ Socket.io และ Node.js สำหรับงานแบบ Realtime

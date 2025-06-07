@@ -1,25 +1,42 @@
 import pandas as pd
-from langchain.embeddings.openai import OpenAIEmbeddings
-from langchain.vectorstores import FAISS
+from langchain_community.vectorstores import FAISS
 from langchain.docstore.document import Document
-import asyncio
 import os
+from langchain_openai import OpenAIEmbeddings
+from dotenv import load_dotenv
+load_dotenv()
+from langchain_community.docstore.in_memory import InMemoryDocstore
+from uuid import uuid4
+
+import faiss
 
 async def embding_to_faiss():
-    df = pd.read_csv(r"C:\vector_with_llm_ocr_ner\serch_movie\csv\Data for Test movie_dataset - AI Engineer.csv")
+    df = pd.read_csv("database/Data for Test movie_dataset - AI Engineer.csv")
+    OPENAI_KEY = os.getenv("OPENAI_API_KEY")
 
     cols_to_embed = ["movie_title", "director_name", "genres", "plot_keywords", "title_year", "content_rating"]
-    df = df[cols_to_embed + ["movie_imdb_link"]].dropna(subset=cols_to_embed)
+    df[cols_to_embed] = df[cols_to_embed].fillna("")
+    df = df[cols_to_embed + ["movie_imdb_link"]].dropna(subset=cols_to_embed) 
 
-    embed_model = OpenAIEmbeddings(model="text-embedding-ada-002")
+    embed_model = OpenAIEmbeddings(model="text-embedding-ada-002", api_key=OPENAI_KEY)
 
-    faiss_index = None
+    vector_store = FAISS(
+        embedding_function=embed_model,
+        index=faiss.IndexFlatL2(1536),
+        docstore=InMemoryDocstore(),
+        index_to_docstore_id={},
+    )
 
+    docs = []
     for i, row in df.iterrows():
- 
-        text = " | ".join([str(row[col]) for col in cols_to_embed])
-
- 
+        text = (
+        f"Title: {row['movie_title']}. "
+        f"Director: {row['director_name']}. "
+        f"Genres: {row['genres'].replace('|', ', ')}. "
+        f"Keywords: {row['plot_keywords'].replace('|', ', ')}. "
+        f"Year: {row['title_year']}. "
+        f"Rating: {row['content_rating']}."
+        )        
         doc = Document(
             page_content=text,
             metadata={
@@ -27,17 +44,16 @@ async def embding_to_faiss():
                 "movie_imdb_link": row["movie_imdb_link"]
             }
         )
- 
-        embedding = await embed_model.aembed_query(text)
+        
+        docs.append(doc)
+    
+    uuids = [str(uuid4()) for _ in range(len(docs))]
+
+    vector_store.add_documents(documents=docs, ids=uuids)
+
+    vector_store.save_local("faiss_index")
+
+    return "✅ FAISS index saved"
+
 
     
-        if faiss_index is None:
-            faiss_index = FAISS.from_embeddings([(doc, embedding)], embed_model)
-        else:
-            faiss_index.add_embeddings([embedding], [doc])
-
- 
-    faiss_index.save_local("faiss_movie_index")
-
-    return "✅ FAISS index saved to ./faiss_movie_index/"
- 

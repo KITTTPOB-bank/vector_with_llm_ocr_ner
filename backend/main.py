@@ -1,3 +1,4 @@
+import asyncio
 from fastapi import FastAPI, File, HTTPException, UploadFile, Form
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
@@ -5,11 +6,18 @@ from agent import chat
 import os
 from libs.extraction import spacy_extraction, llm_extraction, course_extraction
 from libs.convect import pdf_to_markdown , pdf_to_markdown_EasyOCR , pdf_to_markdown_MistralOCR , any_to_markdown
-from database.handler import import_skil, import_course
+from database.elastic import import_skil, import_course, moive_to_db, connect
 from base_model import model
 from langchain_core.messages import HumanMessage, AIMessage, AnyMessage , SystemMessage
 from langchain_openai import ChatOpenAI
 from tool import factory
+from dotenv import load_dotenv
+from database.faiss import embding_to_faiss
+import asyncio
+
+load_dotenv()
+
+from contextlib import asynccontextmanager
 
 app = FastAPI()
 
@@ -56,21 +64,6 @@ async def chat_stream(conversation : model.ChatMessages):
     messages = []
     all_messages = conversation.messages
 
-    messages.append(SystemMessage(content="""
-คุณคือผู้ช่วยอัจฉริยะด้านการแนะนำคอร์สเรียน, ทักษะ, เทรนด์งาน และโอกาสในการพัฒนาตนเอง
-โปรดใช้ `get_elasticsearch_structure` ก่อนเมื่อไม่แน่ใจว่า index มี field อะไรให้ค้นหา
-
-1. `get_elasticsearch_structure` — ใช้เพื่อดูโครงสร้าง (schema/field) ของข้อมูลทั้งหมดใน Elasticsearch
-
-2. `elastic_search` — ใช้ค้นหาข้อมูล
-
- 
-เป้าหมายของคุณคือ:
-- ช่วยแนะนำคอร์สเรียนที่เหมาะกับเป้าหมายของผู้ใช้
-- วิเคราะห์แนวโน้มทักษะที่ตลาดงานต้องการ
-- ให้คำแนะนำตามข้อมูลที่ดึงมาจาก Elasticsearch อย่างถูกต้องและชัดเจน
-"""))
-
     if len(all_messages) > SUMMARY_TRIGGER_THRESHOLD:
         old_messages = all_messages[:-MAX_CONTEXT_MESSAGES]
         recent_messages = all_messages[-MAX_CONTEXT_MESSAGES:]
@@ -93,9 +86,14 @@ async def chat_stream(conversation : model.ChatMessages):
 @app.post("/course")
 async def add_course(course : model.Course):
     ner =  await course_extraction(course.course_detail , "gpt-4.1-mini")
-    status = await import_course(ner , course.name)
+    status = await import_course(ner , course.name , course.link)
     return status
 
+
+
+def _write_file(path: str, content: bytes):
+    with open(path, "wb") as f:
+        f.write(content)
 
 @app.post("/extract")
 async def extract_text(
@@ -118,9 +116,7 @@ async def extract_text(
 
 
     content = await file.read()
-    with open(save_path, "wb") as f:
-        f.write(content)
-
+    await asyncio.get_event_loop().run_in_executor(None, _write_file, save_path, content)
 
     if read_by == "default" and filename.endswith(".pdf"):
         read_by = "pdf"
@@ -161,7 +157,22 @@ async def extract_text(
             detail=str(e)
         )
     
-    
+@app.post("/clear")
+async def clear_data():
+    keep = []
+    es = await connect()
+    indices = list((await es.indices.get_alias(index="*")).keys())
+    for index in indices:
+        await es.indices.delete(index=index)
+        keep.append(f"Deleted index: {index}")
+    return {"deleted_indices": keep}
+
+@app.post("/get_start_data")
+async def update_index():
+    status1 = await moive_to_db()
+    status2 = await embding_to_faiss()
+    return {"message": f"Index updated successfully. {status1} / {status2}"}
+
 # from elasticsearch import Elasticsearch
 
 # es = Elasticsearch("http://localhost:9200")
@@ -191,14 +202,3 @@ async def extract_text(
 
 
 
-from elasticsearch import Elasticsearch
-
-es = Elasticsearch("http://localhost:9200")
-
-# ดึงชื่อ index ทั้งหมด
-indices = es.indices.get_alias(index="*").keys()
-
-# ลบ index ทุกตัว
-for index in indices:
-    es.indices.delete(index=index)
-    print(f"Deleted index: {index}")

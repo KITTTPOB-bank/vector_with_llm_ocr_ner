@@ -7,6 +7,7 @@ from dotenv import load_dotenv
 from docling.datamodel.base_models import InputFormat
 from docling.document_converter import DocumentConverter, PdfFormatOption
 from docling.backend.docling_parse_v4_backend import DoclingParseV4DocumentBackend
+import asyncio
 
 load_dotenv()
 MISTRAL_API_KEY = os.getenv("MISTRAL_API_KEY")
@@ -19,28 +20,33 @@ async def encode_pdf(pdf_path):
     except Exception as e:  
         return None
 
+
+def _convert_pdf_to_md(source: str) -> str:
+    pipeline_options = PdfPipelineOptions()
+    pipeline_options.do_ocr = True
+    pipeline_options.do_table_structure = False
+
+    doc_converter = DocumentConverter(
+        format_options={
+            InputFormat.PDF: PdfFormatOption(
+                pipeline_options=pipeline_options,
+                backend=DoclingParseV4DocumentBackend
+            )
+        }
+    )
+    doc = doc_converter.convert(source)
+    return doc.document.export_to_markdown()
+
+async def pdf_to_markdown(source: str) -> str:
+    loop = asyncio.get_event_loop()
+    return await loop.run_in_executor(None, _convert_pdf_to_md, source)
+
+
 async def any_to_markdown(source) -> str:
     converter = DocumentConverter()
     result = converter.convert(source)
     return result.document.export_to_markdown()
 
-
-async def pdf_to_markdown(source : str) -> str:   
-    pipeline_options = PdfPipelineOptions()
-    pipeline_options.do_ocr = True
-    pipeline_options.do_table_structure = False
- 
- 
-    doc_converter = DocumentConverter(
-        format_options={
-            InputFormat.PDF: PdfFormatOption(
-                pipeline_options=pipeline_options, backend=DoclingParseV4DocumentBackend
-            )
-        }
-    )
-    doc = doc_converter.convert(source) 
-    md = doc.document.export_to_markdown()
-    return md
 
 async def pdf_to_markdown_EasyOCR(source : str) -> str:
     pipeline_options = PdfPipelineOptions()
