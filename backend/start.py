@@ -27,6 +27,32 @@ course = [{
         ขยับขึ้นไปสู่เทคนิคขั้นสูงที่ใช้ในโลกของการวิเคราะห์ธุรกิจ รวมถึงการใช้เครื่องมือ Python ที่ได้รับความนิยมอย่าง Pandas, NumPy, Matplotlib และ Seaborn 
         เพื่อช่วยในการจัดการและแสดงผลข้อมูล
     """
+},
+{
+    "name" : "เขียนโปรแกรมภาษา Visual Basic .NET กับ SQL Server โดยใช้ Entity Framework 6",
+    "link" : "https://www.skilllane.com/courses/vb-net-sql-server-entity-framework",
+    "course_detail": """
+        สอนเขียนโปรแกรมด้วยภาษา Visual Basic, .NET ให้คุณทำเป็นได้อย่างรวดเร็ว สามารถสร้างโปรแกรมขึ้นมาใช้งานได้เลยหลังจากเรียนจบ เพื่อเพิ่มทักษะ .NET
+
+        ประโยชน์ที่ผู้เรียนจะได้รับ
+        - สามารถเขียนโปรแกรมด้วยภาษา Visual Basic, .NET ได้อย่างรวดเร็ว
+        - สามารถใช้ Entity Framework เชื่อมต่อฐานข้อมูล SQL Server แบบ Database First ได้
+        - สามารถเขียนคำสั่ง LINQ to Entities เพื่อจัดการฐานข้อมูล SQL Server ได้
+        - สามารถประยุกต์ใช้งาน CRUD Operation ร่วมกับฐานข้อมูล SQL Server ได้
+        - สามารถสร้างโปรแกรม Windows Application ร่วมกับฐานขัอมูล SQL Server ได้อย่างรวดเร็ว        
+    """
+},
+{
+    "name" : "เขียน Python พัฒนา AI Machine Vision",
+    "link" : "https://www.skilllane.com/courses/python-machine-vision-AI",
+    "course_detail": """
+        สอนให้ทุกคนมีความรู้ด้านการเขียนภาษา Python บวกกับการใช้งาน Library (OpenCV) ซึ่งถูกสร้างขึ้นมาเพื่อใช้สำหรับการพัฒนา AI Machine Vision โดยเฉพาะ
+        ประโยชน์ที่ผู้เรียนจะได้รับ
+        - ความรู้ความเข้าใจในหลักการของ Machine Vision
+        - ทักษะการเขียนภาษา Python ร่วมกัน Library OpenCV
+        - ทักษะการเขียน Code ตรวจจับตำแหน่งต่างๆในภาพ (Detection)
+        - ทักษะการประยุกต์และเขียน Code เพื่อพัฒนา AI Machine Vision
+    """
 }
 ]
 

@@ -81,7 +81,7 @@ def create_tool() -> list[StructuredTool]:
                 }
             },
             "size": 5,
-            "_source": ["course_name", "skill"],
+            "_source": ["course_name", "skill" , "link"],
             "sort": [
                 {"_score": {"order": "desc"}}   
             ]
@@ -207,8 +207,7 @@ def create_tool() -> list[StructuredTool]:
 
     tools.append(structool(
         "search_courses_by_skills",
-        "Search courses that teach any of the given skills. ",
-        
+        "Search courses that teach any of the given skills and return the full list of matched skills along with course details and links to the user.",
         search_courses_by_skills
     ))
 
