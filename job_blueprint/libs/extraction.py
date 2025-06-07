@@ -1,55 +1,88 @@
 from dotenv import load_dotenv
+from langchain_openai import ChatOpenAI
+import os
+from base_model.model import ResumeExtraction
 from spacy_llm.util import assemble
-from spacy.tokens import Doc
-from spacy.util import load_config
-from convect import pdf_to_markdown_MistralOCR, pdf_to_markdown, pdf_to_markdown_EasyOCR, any_to_markdown
-
 load_dotenv()
-config = load_config("config.cfg")
-nlp = assemble("config.cfg")
- 
-res = pdf_to_markdown("C:/Users/USER/Downloads/resume.pdf")
 
-text = res
-print("----------")
-print(text)
-doc = nlp(text)
-print(doc.ents)
+def spacy_extraction(markdown: str) -> list:
+    skill = []
+    base_dir = os.path.dirname(__file__)
+    config_path = os.path.join(base_dir, "config.cfg")
+    ner = assemble(config_path)
+    doc = ner(markdown)
+    for ent in doc.ents:
+        skill.append(ent.text)
 
-# def pair_skills_with_durations(doc: Doc):
-#     skills = []
-#     durations = []
-#     job = []
-#     for ent in doc.ents:
-#         if ent.label_ == "RESUME_SKILL":
-#             skills.append((ent.text, ent.start))
-#         elif ent.label_ == "SKILL_DURATION":
-#             durations.append((ent.text, ent.start))
-#         elif ent.label_ == "JOB_EXP":
-#             job.append(ent.text)
-#     result = []
-#     print("---------------------------------------------------------")
-#     print(skills)
-#     print(durations)
-#     print("---------------------------------------------------------")
+    return skill
 
-#     for skill, skill_idx in skills:
-#         nearest = min(durations, key=lambda d: abs(d[1] - skill_idx), default=None)
-#         result.append({
-#             "skill": skill,
-#             "duration": nearest[0] if nearest else None
-#         })
+def llm_extraction(skill : list , resume : str, model: str) -> ResumeExtraction:
+    OPENAI_KEY = os.getenv("OPENAI_API_KEY")
+    prompt = f"""
+You are a professional resume parser.
 
-#     token_count = len([token for token in doc if not token.is_space])
+Your task is to extract and group technical skills used in real work experiences such as **job positions** (e.g., Software Developer, Business Analyst) from the resume below.
 
-#     return {
-#         "tokens_used": token_count,
-#         "skills_with_durations": result,
-#         "job_exp": job,
-#     }
+---
 
-# result = pair_skills_with_durations(doc)
-# print("======================================================================================")
-# print(result)
-# print("======================================================================================")
+### Skill List (Extracted from Resume):
+Use only these skills when generating your output:
+{skill}
 
+---
+
+### Output Format:
+Return a list of entries. Each entry must include:
+- `skill`: A list of relevant technical skills used in that specific job.
+- `year`: The **most recent calendar year** the experience was active.
+  - For example:
+    - "2023 - 2024" → use 2024
+    - "2020 – Present" → use 2025
+- `position`: The full name or title of the **job or role** where the skills were applied.
+
+---
+
+### Guidelines:
+
+- Only include **actual job experiences** or **technical work**.
+  ❌ Exclude education, awards, coursework, and certifications.
+
+- If a **skill is mentioned but the year it was used is not clear**, **do not include it** in the output.
+
+- If **dates appear below, above, or far from the position title**, infer that those dates likely belong to the nearest or most relevant job title nearby.
+
+- If a job is **missing a date entirely**, but nearby dates exist (before or after), you may **reasonably estimate** the correct year from the context and structure of the resume.
+
+- Group multiple skills used in the same job under a single record.
+
+- Only include skills that are found in the provided skill list — do not include unrelated tools or general concepts.
+
+- Do not invent or assume jobs or skills beyond what is stated in the resume.
+
+---
+
+### Example Output:
+[
+  {{
+    "skill": ["React", "TypeScript", "AWS"],
+    "year": 2024,
+    "position": "Software Engineer"
+  }},
+  {{
+    "skill": ["Java", "JUnit"],
+    "year": 2023,
+    "position": "Backend Developer"
+  }}
+]
+
+---
+
+### Resume:
+<resume>
+{resume}
+</resume>
+"""
+    llm = ChatOpenAI(api_key=OPENAI_KEY, temperature=0 , model=model).with_structured_output(ResumeExtraction)
+    responed : ResumeExtraction = llm.invoke(prompt)
+    return responed 
+   
