@@ -8,8 +8,4 @@ class SkillExperience(BaseModel):
 
 class ResumeExtraction(BaseModel):
     skills_by_position: List[SkillExperience] = Field(description="A list of grouped skills by job position.")
-
-class SkillExperience(BaseModel):
-    skill: List[str]
-    year: int
-    position: str
+ 

@@ -26,7 +26,6 @@ def any_to_markdown(source) -> str:
 
 
 def pdf_to_markdown(source : str) -> str:   
-    print(source)
     pipeline_options = PdfPipelineOptions()
     pipeline_options.do_ocr = True
     pipeline_options.do_table_structure = True
