@@ -83,9 +83,6 @@ Return a list of entries. Each entry must include:
 
 ### Guidelines:
 
-- Only include **actual job experiences** or **technical work**.
-  ❌ Exclude education, awards, coursework, and certifications.
-
 - If a **skill is mentioned but the year it was used is not clear**, **do not include it** in the output.
 
 - If **dates appear below, above, or far from the position title**, infer that those dates likely belong to the nearest or most relevant job title nearby.

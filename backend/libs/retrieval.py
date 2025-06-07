@@ -1,13 +1,30 @@
 import database.elastic as elastic 
-from langchain_community.vectorstores import FAISS
+import os
+os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
+
 from langchain_openai import OpenAIEmbeddings
 import os
 from dotenv import load_dotenv
 import cohere
+from langchain_chroma import Chroma
 
 load_dotenv()
 
+async def rerank_cohere(docs : list , query: str , top_n: int = 4):
+    COHERE_API_KEY = os.getenv("COHERE_API_KEY")
+    co = cohere.ClientV2(api_key=COHERE_API_KEY)
+    response = co.rerank(
+        model="rerank-v3.5",
+        query=query,
+        documents=docs,
+        top_n=top_n,
+    )
+
+    return response.results
+
+
 async def keyword_search(query: str, index_name: str = "movie",  top_k: int = 3):
+ 
     es = await elastic.connect()  
     search_query = {
         "size": top_k,
@@ -29,23 +46,26 @@ async def keyword_search(query: str, index_name: str = "movie",  top_k: int = 3)
             "content": source.get("content"),
             "movie_imdb_link": source.get("movie_imdb_link"),
         })
+    
     return results
 
 
 async def vector_search(query: str, top_k: int = 5):
     OPENAI_KEY = os.getenv("OPENAI_API_KEY")
-
+  
     embeddings = OpenAIEmbeddings(model="text-embedding-ada-002", api_key=OPENAI_KEY)
-
-    new_vector_store = FAISS.load_local(
-        "faiss_index", embeddings, allow_dangerous_deserialization=True
+ 
+    vector_store = Chroma(
+        collection_name="movies",
+        embedding_function=embeddings,
+        persist_directory="./chroma_langchain_db",
     )
 
-    raw_results = new_vector_store.similarity_search(
+    raw_results = vector_store.similarity_search(
         query=query,
         k=top_k,
     )
-
+ 
     results = []
     for res in raw_results:
         results.append({
@@ -54,21 +74,45 @@ async def vector_search(query: str, top_k: int = 5):
         })
 
     return results
+ 
+async def hybrid_search(query: str):
+    try:
+        keyword_docs = await keyword_search(query)
+    except Exception as e:
+        keyword_docs = []
 
-async def rerank(docs : list , query: str , top_n: int = 4):
-    COHERE_API_KEY = os.getenv("COHERE_API_KEY")
-    co = cohere.ClientV2(api_key=COHERE_API_KEY)
-    response = co.rerank(
-        model="rerank-v3.5",
-        query=query,
-        documents=docs,
-        top_n=top_n,
-    )
+    try:
+        vector_docs = await vector_search(query)
+    except Exception as e:
+        vector_docs = []
 
-    return response
+    combined = vector_docs + keyword_docs
 
+    seen_links = set()
+    unique_docs = []
+ 
+    for item in combined:
+        link = item.get("movie_imdb_link")
+        if link not in seen_links:
+            seen_links.add(link)
+            unique_docs.append(item)
+    try:
+        docs = [item["content"] for item in unique_docs]
+        rerank : list[dict] = await rerank_cohere(docs , query)
 
-async def hybrid_search():
-
-
-    return None
+    except Exception as e:
+        print(f"[Error building docs list] {e}")
+        docs = []
+    final_results = []
+    for item in rerank:
+ 
+        idx = item.index
+        doc = unique_docs[idx]
+ 
+        final_results.append({
+            "content": doc["content"],
+            "movie_imdb_link": doc.get("movie_imdb_link"),
+            "relevance_score": item.relevance_score
+        })
+ 
+    return final_results

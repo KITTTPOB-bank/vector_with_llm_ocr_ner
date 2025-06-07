@@ -6,13 +6,14 @@ from agent import chat
 import os
 from libs.extraction import spacy_extraction, llm_extraction, course_extraction
 from libs.convect import pdf_to_markdown , pdf_to_markdown_EasyOCR , pdf_to_markdown_MistralOCR , any_to_markdown
+from libs.retrieval import hybrid_search
 from database.elastic import import_skil, import_course, moive_to_db, connect
 from base_model import model
 from langchain_core.messages import HumanMessage, AIMessage, AnyMessage , SystemMessage
 from langchain_openai import ChatOpenAI
 from tool import factory
 from dotenv import load_dotenv
-from database.faiss import embding_to_faiss
+from database.chroma import embedding_to_chroma
 import asyncio
 
 load_dotenv()
@@ -33,63 +34,68 @@ MAX_CONTEXT_MESSAGES = 15
 SUMMARY_TRIGGER_THRESHOLD = 30 
 tools = factory.create_tool()
 
-
-async def summarize_messages(messages: list[AnyMessage]) -> str:
-    OPENAI_KEY = os.getenv("OPENAI_API_KEY")
-    text_blocks = []
-    llm = ChatOpenAI(model="gpt-4.1-mini", stream_usage= True, temperature=0 , top_p=0, api_key=OPENAI_KEY)
-
-    for msg in messages:
-        prefix = "User: " if msg.role == "user" else "AI: "
-        text_blocks.append(prefix + msg.content)
-    
-    full_text = "\n".join(text_blocks)
-
-    summary_prompt = f"""
-    สรุปข้อความต่อไปนี้ให้สั้นและกระชับเพื่อใช้เป็นบริบท:
-    {full_text}
-    """
-    summary_response : AIMessage = await llm.ainvoke(messages=[HumanMessage(content=summary_prompt)])
-    return summary_response.content
-
-async def stream(messages: list):
-    async for message in chat.call_agent(tools).astream_events({"messages" : messages}, version="v2"):
-        if message["event"] == "on_chat_model_stream":
-            if message["metadata"]["langgraph_node"] == "node_model":
-                if message["data"]['chunk'].content:
-                    yield message["data"]['chunk'].content
-
-@app.post("/chat")
-async def chat_stream(conversation : model.ChatMessages):
+async def summarize_messages(all_msg: list[AnyMessage]) -> str:
     messages = []
-    all_messages = conversation.messages
+    if len(all_msg) > SUMMARY_TRIGGER_THRESHOLD:
+        old_messages = all_msg[:-MAX_CONTEXT_MESSAGES]
+        recent_messages = all_msg[-MAX_CONTEXT_MESSAGES:]
 
-    if len(all_messages) > SUMMARY_TRIGGER_THRESHOLD:
-        old_messages = all_messages[:-MAX_CONTEXT_MESSAGES]
-        recent_messages = all_messages[-MAX_CONTEXT_MESSAGES:]
-        summary = await summarize_messages(old_messages)
-         
-        messages.append(SystemMessage(content=f"สรุปบทสนทนาก่อนหน้านี้: {summary}"))
+        OPENAI_KEY = os.getenv("OPENAI_API_KEY")
+
+        text_blocks = []
+        llm = ChatOpenAI(model="gpt-4.1-mini", stream_usage= True, temperature=0 , top_p=0, api_key=OPENAI_KEY)
+
+        for msg in old_messages:
+                prefix = "User: " if msg.role == "user" else "AI: "
+                text_blocks.append(prefix + msg.content)
+        
+        full_text = "\n".join(text_blocks)
+
+        summary_prompt = f"""
+        สรุปข้อความต่อไปนี้ให้สั้นและกระชับเพื่อใช้เป็นบริบท:
+        {full_text}
+        """
+        summary_response : AIMessage = await llm.ainvoke(messages=[HumanMessage(content=summary_prompt)])
+        messages.append(SystemMessage(content=f"สรุปบทสนทนาก่อนหน้านี้: {summary_response}"))
         for chat in recent_messages:
             if chat.role == "ai":
                 messages.append(AIMessage(content=chat.content))
             else:
                 messages.append(HumanMessage(content=chat.content))
     else:
-        for chat in all_messages:
+        for chat in all_msg:
             if chat.role == "ai":
                 messages.append(AIMessage(content=chat.content))
             else:
                 messages.append(HumanMessage(content=chat.content))
+
+    return messages
+
+async def stream(messages: list , tools_choice: list):
+    async for message in chat.call_agent(tools_choice).astream_events({"messages" : messages}, version="v2"):
+        if message["event"] == "on_chat_model_stream":
+            if message["metadata"]["langgraph_node"] == "node_model":
+                if message["data"]['chunk'].content:
+                    yield message["data"]['chunk'].content
+
+@app.post("/chatJob")
+async def chat_stream(conversation : model.ChatMessages):
+    tools_choice = tools
+    messages = await summarize_messages(conversation.messages)
+    return StreamingResponse(stream(messages , tools_choice), media_type="text/event-stream")
+
+@app.post("/chatMovie")
+async def chat_stream(conversation : model.ChatMessages):
+    messages = []
+    messages = await summarize_messages(conversation.messages)
     return StreamingResponse(stream(messages), media_type="text/event-stream")
+
 
 @app.post("/course")
 async def add_course(course : model.Course):
     ner =  await course_extraction(course.course_detail , "gpt-4.1-mini")
     status = await import_course(ner , course.name , course.link)
     return status
-
-
 
 def _write_file(path: str, content: bytes):
     with open(path, "wb") as f:
@@ -167,13 +173,22 @@ async def clear_data():
         keep.append(f"Deleted index: {index}")
     return {"deleted_indices": keep}
 
-@app.post("/get_start_data")
+@app.post("/push_movie_data")
 async def update_index():
     status1 = await moive_to_db()
-    status2 = await embding_to_faiss()
-    return {"message": f"Index updated successfully. {status1} / {status2}"}
+    status2 = await embedding_to_chroma()
+    return {"message": f"Index updated successfully. {''} / {status2}"}
 
-# from elasticsearch import Elasticsearch
+
+@app.post("/rerank")
+async def rerank(query: str):
+    search = await hybrid_search(query)
+ 
+    return search
+
+
+
+# from elasticsearch import Elasticsearchmo
 
 # es = Elasticsearch("http://localhost:9200")
 
