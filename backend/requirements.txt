@@ -11,3 +11,7 @@ uvicorn==0.34.3
 langchain-openai==0.3.21
 elasticsearch==8.17.2
 python-multipart
+aiohttp
+# langchain-community 
+# faiss-cpu
+

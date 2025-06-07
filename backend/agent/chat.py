@@ -1,21 +1,20 @@
 from typing import TypedDict, Annotated
-from langchain_core.messages import ToolMessage, SystemMessage, HumanMessage
+from langchain_core.messages import ToolMessage,   AIMessage
 import os 
 from langgraph.graph import StateGraph
 from langgraph.graph.message import add_messages
 from langchain_openai import ChatOpenAI
-from typing import List
 from dotenv import load_dotenv
-from .prompt import PROMPT
-
+from langchain.tools import StructuredTool
 load_dotenv()
  
 class State(TypedDict):
-    messages: Annotated[List, add_messages]
-    review: Annotated[List, add_messages]
+    messages: Annotated[list, add_messages]
 
-def call_agent(tools):
-    llm = ChatOpenAI(model="gpt-4.1-mini", stream_usage= True, temperature=0 , top_p=0, api_key=api_key)
+def call_agent(tools : list[StructuredTool]):
+    OPENAI_KEY = os.getenv("OPENAI_API_KEY")
+    
+    llm = ChatOpenAI(model="gpt-4.1-mini", stream_usage= True, temperature=0 , top_p=0, api_key=OPENAI_KEY)
 
     async def call_tools(state: State):
         result = []
@@ -33,9 +32,9 @@ def call_agent(tools):
             )
         return {"messages": result}
 
-    def should_continue(state: State):
+    async def should_continue(state: State):
         messages = state["messages"]
-        last_message = messages[-1]
+        last_message : AIMessage = messages[-1]
         if last_message.tool_calls:
             return "node_tool"
         return "__end__"
@@ -43,10 +42,11 @@ def call_agent(tools):
 
     async def call_model(state : State):
         messages = state["messages"]
-  
+        print(messages[-1])
         model =  llm.bind_tools(tools)
-        message = await model.ainvoke([SystemMessage(content=PROMPT)] + messages)
-    
+        message = await model.ainvoke(messages)
+
+        print(message)
         return {"messages": [message]}
 
 

@@ -28,11 +28,9 @@ async def any_to_markdown(source) -> str:
 async def pdf_to_markdown(source : str) -> str:   
     pipeline_options = PdfPipelineOptions()
     pipeline_options.do_ocr = True
-    pipeline_options.do_table_structure = True
-    pipeline_options.table_structure_options.do_cell_matching = True
-
-    pipeline_options = PdfPipelineOptions()
-
+    pipeline_options.do_table_structure = False
+ 
+ 
     doc_converter = DocumentConverter(
         format_options={
             InputFormat.PDF: PdfFormatOption(
@@ -43,7 +41,6 @@ async def pdf_to_markdown(source : str) -> str:
     doc = doc_converter.convert(source) 
     md = doc.document.export_to_markdown()
     return md
-
 
 async def pdf_to_markdown_EasyOCR(source : str) -> str:
     pipeline_options = PdfPipelineOptions()

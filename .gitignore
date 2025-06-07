@@ -1,24 +1,24 @@
-job-blueprint-project
+skl-project
 .env
 *.csv
 .ipynb_checkpoints/
 __pycache__/
 *.pyc
 model/
-/job_blueprint/files/
+/backend/files/
 
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
 # dependencies
-my-app/node_modules
-my-app/.pnp
+frontend/node_modules
+frontend/.pnp
 .pnp.js
 
 # testing
-my-app/coverage
+frontend/coverage
 
 # production
-my-app/build
+frontend/build
 
 # misc
 .DS_Store
