@@ -4,6 +4,7 @@
 🔧 Features
 ✅ แปลงไฟล์ PDF เป็น Markdown เพื่อเตรียมข้อมูลให้ LLM วิเคราะห์ โดยใช้ docling
 
+```
 .
 ├── files/                     # PDF Resume ที่ต้องการประมวลผล
 ├── libs/
@@ -13,8 +14,7 @@
 │   ├── elastic.py             # เชื่อมต่อและบันทึกข้อมูลใน Elasticsearch
 │   └── chroma.py              # ทำ embedding และบันทึกใน ChromaDB
 ├── main.py                    # สคริปต์หลักในการประมวลผล
-
-
+```
 
 # วิธีการติดตั้ง และทดสอบ 
 ## 1. 
