@@ -101,7 +101,6 @@ async def hybrid_search(query: str):
         rerank : list[dict] = await rerank_cohere(docs , query)
 
     except Exception as e:
-        print(f"[Error building docs list] {e}")
         docs = []
     final_results = []
     for item in rerank:

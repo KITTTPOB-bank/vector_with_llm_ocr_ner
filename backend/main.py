@@ -185,33 +185,4 @@ async def rerank(query: str):
     return search
 
 
-
-# from elasticsearch import Elasticsearchmo
-
-# es = Elasticsearch("http://localhost:9200")
-
-# query = {
-#     "size": 0,
-#     "query": {
-#         "match_phrase": {
-#             "position": "Fullstack Developer"
-#         }
-#     },
-#     "aggs": {
-#         "popular_skills": {
-#             "terms": {
-#                 "field": "skill.keyword",
-#                 "size": 10
-#             }
-#         }
-#     }
-# }
-
-# response = es.search(index="skills_by_position", body=query)
-
-# # แสดงผลสกิลที่นิยมที่สุด
-# for bucket in response['aggregations']['popular_skills']['buckets']:
-#     print(f"Skill: {bucket['key']}, Count: {bucket['doc_count']}")
-
-
-
+ 
