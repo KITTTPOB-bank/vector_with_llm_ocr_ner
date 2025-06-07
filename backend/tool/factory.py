@@ -213,10 +213,11 @@ def create_tool() -> list[StructuredTool]:
     ))
 
     tools.append(structool(
-        "recommend_skill_for_position",
-        "ใช้สำหรับค้นหาว่า ตำแหน่งนี้ ทักษะไหนนิยม เพื่อนำไปค้นหา คอสต่อไป.",
-        recommend_skill_for_position
+    "recommend_skill_for_position",
+    (
+        "Recommend popular technical skills commonly used in the specified job position "
+        "Useful for planning learning paths or choosing the right training courses"
+    ),
+    recommend_skill_for_position
     ))
-
-
     return tools
