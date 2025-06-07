@@ -34,7 +34,7 @@ async def chat_stream():
     return StreamingResponse(fake_stream(), media_type="text/plain")
 
 
- 
+
 @app.post("/extract")
 async def extract_text(
     file: UploadFile = File(...),
@@ -63,13 +63,13 @@ async def extract_text(
 
     match read_by:
         case "default":
-            markdown = any_to_markdown(save_path)
+            markdown = await any_to_markdown(save_path)
         case "pdf":
-            markdown = pdf_to_markdown(save_path)
+            markdown = await pdf_to_markdown(save_path)
         case "mistral":
-            markdown = pdf_to_markdown_MistralOCR(save_path)
+            markdown = await pdf_to_markdown_MistralOCR(save_path)
         case "easy":
-            markdown = pdf_to_markdown_EasyOCR(content)
+            markdown = await pdf_to_markdown_EasyOCR(content)
         case _:
             raise HTTPException(status_code=400, detail="Invalid OCR type. Choose: default, easy, mistral")
         
@@ -80,7 +80,7 @@ async def extract_text(
         )
 
     try:
-        ner = spacy_extraction(markdown)
+        ner = await spacy_extraction(markdown)
         blueprint = llm_extraction(ner, markdown, "gpt-4.1-mini")
 
         status = import_skil(blueprint)
@@ -120,3 +120,17 @@ async def extract_text(
 # # แสดงผลสกิลที่นิยมที่สุด
 # for bucket in response['aggregations']['popular_skills']['buckets']:
 #     print(f"Skill: {bucket['key']}, Count: {bucket['doc_count']}")
+
+
+
+# from elasticsearch import Elasticsearch
+
+# es = Elasticsearch("http://localhost:9200")
+
+# # ดึงชื่อ index ทั้งหมด
+# indices = es.indices.get_alias(index="*").keys()
+
+# # ลบ index ทุกตัว
+# for index in indices:
+#     es.indices.delete(index=index)
+#     print(f"Deleted index: {index}")

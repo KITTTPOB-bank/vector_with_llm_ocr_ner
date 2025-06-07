@@ -5,7 +5,7 @@ from base_model.model import ResumeExtraction
 from spacy_llm.util import assemble
 load_dotenv()
 
-def spacy_extraction(markdown: str) -> list:
+async def spacy_extraction(markdown: str) -> list:
     skill = []
     base_dir = os.path.dirname(__file__)
     config_path = os.path.join(base_dir, "config.cfg")
@@ -13,7 +13,7 @@ def spacy_extraction(markdown: str) -> list:
     doc = ner(markdown)
     for ent in doc.ents:
         skill.append(ent.text)
-
+    print(skill)
     return skill
 
 def llm_extraction(skill : list , resume : str, model: str) -> ResumeExtraction:

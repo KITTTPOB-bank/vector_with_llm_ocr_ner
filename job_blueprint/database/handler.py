@@ -2,11 +2,12 @@ from elasticsearch import Elasticsearch
 from typing import List
 from base_model.model import ResumeExtraction
 import json
-def import_skil(experience_list: ResumeExtraction, index_name: str = "skills_by_position"):
-    es = Elasticsearch("http://localhost:9200")
 
-    if not es.ping():
-        raise ConnectionError("Could not connect to Elasticsearch!")
+es = Elasticsearch("http://localhost:9200")
+if not es.ping():
+    raise ConnectionError("Could not connect to Elasticsearch!")
+
+def import_skil(experience_list: ResumeExtraction, index_name: str = "skills_by_position"):
     print(experience_list)
     print(type(experience_list))
     
@@ -21,3 +22,27 @@ def import_skil(experience_list: ResumeExtraction, index_name: str = "skills_by_
 
 
     return f"Successfully"
+
+def import_course():
+    return [
+        {
+            "course": "สร้าง Real-Time Web App ด้วย Socket.io, Next.js 15.x และ Drizzle ORM (MySQL)",
+            "keyword": [
+                "TypeScript",
+                "Socket.io",
+                "Node.js",
+                "Realtime",
+                "Dashboard",
+                "Chart",
+                "Next.js",
+                "Material UI",
+                "shadcn/ui",
+                "Drizzle ORM",
+                "MySQL",
+                "Build",
+                "Deploy",
+                "Production"
+            ]
+        }
+    ]
+

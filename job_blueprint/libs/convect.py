@@ -12,20 +12,20 @@ load_dotenv()
 MISTRAL_API_KEY = os.getenv("MISTRAL_API_KEY")
 warnings.filterwarnings("ignore", category=UserWarning)
 
-def encode_pdf(pdf_path):
+async def encode_pdf(pdf_path):
     try:
         with open(pdf_path, "rb") as pdf_file:
             return base64.b64encode(pdf_file.read()).decode('utf-8')
     except Exception as e:  
         return None
 
-def any_to_markdown(source) -> str:
+async def any_to_markdown(source) -> str:
     converter = DocumentConverter()
     result = converter.convert(source)
     return result.document.export_to_markdown()
 
 
-def pdf_to_markdown(source : str) -> str:   
+async def pdf_to_markdown(source : str) -> str:   
     pipeline_options = PdfPipelineOptions()
     pipeline_options.do_ocr = True
     pipeline_options.do_table_structure = True
@@ -45,7 +45,7 @@ def pdf_to_markdown(source : str) -> str:
     return md
 
 
-def pdf_to_markdown_EasyOCR(source : str) -> str:
+async def pdf_to_markdown_EasyOCR(source : str) -> str:
     pipeline_options = PdfPipelineOptions()
     pipeline_options.do_ocr = True
     pipeline_options.do_table_structure = True
@@ -74,7 +74,7 @@ def pdf_to_markdown_EasyOCR(source : str) -> str:
     return md
 
 # ค่าใช้จ่าย Mistral OCR 1 ดอลลาร์ต่อ 1000 หน้า
-def pdf_to_markdown_MistralOCR(source : str) -> str:
+async def pdf_to_markdown_MistralOCR(source : str) -> str:
     client = Mistral(api_key=MISTRAL_API_KEY)
     base64_pdf = encode_pdf(source)
     ocr_response = client.ocr.process(
