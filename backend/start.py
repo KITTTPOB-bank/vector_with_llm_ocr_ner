@@ -48,6 +48,7 @@ async def process_course(course):
     print(f"Finished course: {course['name']} with status: {status}")
 
 async def main():
+    print("GET START ......")
     folder = Path("files")
     pdf_files = folder.glob("*.pdf")
     for pdf_file in pdf_files:
@@ -58,6 +59,7 @@ async def main():
     print("sussecc embedding_to_chroma")
     for c in course:
         await process_course(c)
+    print("sussecc all task")
 
 if __name__ == "__main__":
     asyncio.run(main())
