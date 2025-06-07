@@ -136,22 +136,17 @@ def create_tool() -> list[StructuredTool]:
             "most_popular_items": popular_items
         }, ensure_ascii=False)
     
-    async def job_blueprint(year: int, keyword: str) -> str:
+    async def job_blueprint(year: int, position: str) -> str:
         es = await connect()
 
         query_agg = {
             "size": 0,
             "query": {
-                "bool": {
-                    "must": [
-                        {"term": {"year": year}},
-                        {
-                            "multi_match": {
-                                "query": keyword,
-                                "fields": ["position", "desired_job", "skill"]
-                            }
-                        }
-                    ]
+                "match": {
+                    "position": {
+                        "query": position,
+                        "fuzziness": "AUTO"
+                    }
                 }
             },
             "aggs": {
@@ -191,15 +186,15 @@ def create_tool() -> list[StructuredTool]:
 
         return json.dumps({
             "year": year,
-            "keyword": keyword,
+            "position": position,
             "most_popular_skills_overall": popular_skills,
             "positions_top_skills": positions_skills
         }, ensure_ascii=False)
     
     tools.append(structool(
-        name="popular_skills_by_year",
-        description=f"For a given year and keyword, summarize the most demanded skills overall and by job position. Current time: {datetime.now()}",
-        func=job_blueprint
+        "job_blueprint",
+        f"For a given year and job position, summarize the most demanded skills overall and by job position. Current time: {datetime.now()}",
+        job_blueprint
     ))
     
     tools.append(structool(
