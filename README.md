@@ -179,7 +179,7 @@ http://localhost:9200/courses/_search?pretty ## courses
 ### ขั้นตอนการนำเข้าข้อมูล resume 
 1. แปลง file pdf หรือไฟล์อื่นๆ เช่น docx เป็น markdown โดยมี 3 วิธี คือ
     1. docling with DoclingParseV4DocumentBackend  # แนะนำ ไม่ช้าจนเกินไป
-    2. docling with EasyOcr # ช้าแต่ใช้ในกรณี DoclingParseV4DocumentBackend แปลงข้อมูลไม่ได้
+    2. docling with EasyOcr # ช้าแต่ใช้ในกรณี DoclingParseV4DocumentBackend แปลงข้อมูลไม่ได้ *** ครั้งแรกที่ใช้จะทำการ pull model จะใช้เวลานาน***
     3. MistralOCR # แม่นยำสุดแต่มีค่าใช้จ่าย
 2. สกัดข้อมูล markdown โดยใช้ spacy-llm สกัด ทักษะลงใน -> skill list
 3. ส่ง skill list , markdown ไปยัง llm เพื่อสกัดข้อมูลอีกครั้งในโครงสร้าง
