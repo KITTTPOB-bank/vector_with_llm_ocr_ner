@@ -1,10 +1,12 @@
 // App.tsx
 import React, { useEffect, useRef, useState } from "react";
-import { Button, Input, Spin , Space } from "antd";
+import { Button, Input, Spin, Space, Modal, Radio, RadioChangeEvent, Upload } from "antd";
 import { ArrowUpOutlined, LoadingOutlined } from "@ant-design/icons";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import "./index.css"; 
+import "./index.css";
+import { UploadOutlined } from '@ant-design/icons';
+import type { UploadChangeParam, UploadFile } from 'antd/es/upload';
 
 const antIcon = <LoadingOutlined style={{ fontSize: 24, color: "white" }} spin />;
 
@@ -18,7 +20,30 @@ function App() {
   const [inputText, setInputText] = useState("");
   const [streaming, setStreaming] = useState(false);
   const [mode, setMode] = useState<"job" | "movie">("job");
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedOption, setSelectedOption] = useState("general");
+  const [fileList, setFileList] = useState<UploadFile<any>[]>([]);
 
+  const onChange = (e: RadioChangeEvent) => {
+    setSelectedOption(e.target.value);
+  };
+
+  const showModal = () => {
+    setIsModalOpen(true);
+  };
+
+  const handleUploadChange = (info: UploadChangeParam) => {
+    setFileList(info.fileList);
+  };
+
+  const handleOk = (selectedOption: string, upload:  UploadFile<any>[]) => {
+    console.log(selectedOption)
+    setIsModalOpen(false);
+  };
+
+  const handleCancel = () => {
+    setIsModalOpen(false);
+  };
   const handleSend = async () => {
     if (!inputText.trim()) return;
 
@@ -27,10 +52,10 @@ function App() {
     setInputText("");
     setStreaming(true);
     let url = "http://localhost:8000/chatJob"
-    if (mode == "job"){
+    if (mode == "job") {
       url = "http://localhost:8000/chatJob";
     }
-    else{
+    else {
       url = "http://localhost:8000/chatMovie";
     }
     try {
@@ -82,7 +107,6 @@ function App() {
   //         : "text-gray-800 text-left" bg-gray-100
   return (
     <div className="min-h-screen bg-gray-200 text-black p-4 flex flex-col items-center">
-
       <div className="w-full max-w-2xl flex-1 overflow-auto space-y-2 rounded-lg p-3">
 
         {messages.map((msg, idx) => (
@@ -105,7 +129,7 @@ function App() {
         ))}
       </div>
 
-      <div className="w-full max-w-2xl mt-4 flex items-end gap-2">
+      <div className="w-full max-w-3xl mt-4 flex items-end gap-2">
 
         <Space>
           <Button
@@ -120,7 +144,14 @@ function App() {
           >
             Movie
           </Button>
-      </Space>
+          <Button variant="solid" icon={<UploadOutlined />} color="cyan" onClick={showModal}>
+            Resume
+          </Button>
+
+          <Button variant="solid" icon={<UploadOutlined />} color="cyan" onClick={showModal}>
+            Course
+          </Button>
+        </Space>
 
         <Input.TextArea
           value={inputText}
@@ -130,7 +161,7 @@ function App() {
           disabled={streaming}
           className="flex-1"
         />
-         
+
         <Button
           type="primary"
           icon={<ArrowUpOutlined />}
@@ -138,6 +169,36 @@ function App() {
           disabled={streaming}
         />
       </div>
+
+
+      <Modal
+        title="เลือกวิธีการสกัดข้อมูลจากไฟล์"
+        open={isModalOpen}
+        onOk={() => handleOk(selectedOption, fileList)}
+        onCancel={handleCancel}
+      >
+        <Radio.Group
+          onChange={onChange}
+          value={selectedOption}
+          style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}
+        >
+          <Radio value="general">สกัดข้อมูลแบบทั่วไป (แนะนำ)</Radio>
+          <Radio value="easyocr">สกัดข้อมูล โดย EasyOCR</Radio>
+          <Radio value="mistral">
+            สกัดข้อมูล โดย Mistral-OCR (มีค่าใช้จ่าย 1000 หน้า ต่อ 1 ดอลลาร์)
+          </Radio>
+        </Radio.Group>
+
+        <Upload
+          beforeUpload={() => false}
+          onChange={handleUploadChange}
+          fileList={fileList}
+          maxCount={1}
+          style={{ marginTop: 16 }}
+        >
+          <Button>เลือกไฟล์</Button>
+        </Upload>
+      </Modal>
     </div>
   );
 }
