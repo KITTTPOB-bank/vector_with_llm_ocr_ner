@@ -60,7 +60,7 @@ function App() {
     formData.append("read_by", selectedOption);
     formData.append("desired_job", "");
     try {
-      const res = await fetch("http://backend:8000/extract", {
+      const res = await fetch("http://localhost:8000/extract", {
         method: "POST",
         body: formData,
       });
@@ -83,7 +83,7 @@ function App() {
   const handleOkTwo = async () => {
     setLoading(true);
     try {
-      const res = await fetch("http://backend:8000/course", {
+      const res = await fetch("http://localhost:8000/course", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -118,12 +118,12 @@ function App() {
     setMessages(newMessages);
     setInputText("");
     setStreaming(true);
-    let url = "http://backend:8000/chatJob"
+    let url = "http://localhost:8000/chatJob"
     if (mode == "job") {
-      url = "http://backend:8000/chatJob";
+      url = "http://localhost:8000/chatJob";
     }
     else {
-      url = "http://backend:8000/chatMovie";
+      url = "http://localhost:8000/chatMovie";
     }
     try {
       const response = await fetch(url, {

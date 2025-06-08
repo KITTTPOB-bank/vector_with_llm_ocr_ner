@@ -1,6 +1,4 @@
 wheel
-numpy 
-scipy
 docling 
 langchain-chroma
 cohere

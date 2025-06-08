@@ -1,42 +1,42 @@
-services:
-  backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-    container_name: llm_backend
-    ports:
-      - "8000:8000"
-    depends_on:
-      - elasticsearch
-    networks:
-      - elasticnet
-    env_file:
-      - .env
+  services:
+    backend:
+      build:
+        context: ./backend
+        dockerfile: Dockerfile
+      container_name: llm_backend
+      ports:
+        - "8000:8000"
+      depends_on:
+        - elasticsearch
+      networks:
+        - elasticnet
+      env_file:
+        - .env
 
-  frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-    container_name: llm_frontend
-    ports:
-      - "3000:80"
-    networks:
-      - elasticnet
-    depends_on:
-      - backend
+    frontend:
+      build:
+        context: ./frontend
+        dockerfile: Dockerfile
+      container_name: llm_frontend
+      ports:
+        - "3000:80"
+      networks:
+        - elasticnet
+      depends_on:
+        - backend
 
-  elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:8.17.2
-    container_name: elasticsearch
-    environment:
-      - discovery.type=single-node
-      - xpack.security.enabled=false
-      - ES_JAVA_OPTS=-Xms512m -Xmx512m
-    ports:
-      - "9200:9200"
-    networks:
-      - elasticnet
+    elasticsearch:
+      image: docker.elastic.co/elasticsearch/elasticsearch:8.17.2
+      container_name: elasticsearch
+      environment:
+        - discovery.type=single-node
+        - xpack.security.enabled=false
+        - ES_JAVA_OPTS=-Xms512m -Xmx512m
+      ports:
+        - "9200:9200"
+      networks:
+        - elasticnet
 
-networks:
-  elasticnet:
-    driver: bridge
+  networks:
+    elasticnet:
+      driver: bridge
