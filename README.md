@@ -156,6 +156,7 @@ http://localhost:9200/movie/_search?pretty ## movie
 http://localhost:9200/resumes/_search?pretty ## resumes
 http://localhost:9200/courses/_search?pretty ## courses
 ```
+
 # system overview
 
 ## ระบบค้นหาหนังโดยผสมผสาน Traditional Search และ Generative AI 
@@ -164,7 +165,34 @@ http://localhost:9200/courses/_search?pretty ## courses
 2. ทำการ Embeddings แต่ละแถว ของ pandas  
 3. นำข้อมูล vector ที่แปลงจาก ข้อ 2 เก็บเข้า Chroma ใน chroma_langchain_db
 4. นำข้อมูล document ที่ได้จากการแปลงเป็น pandas เก็บเข้า elastic db
-### ขั้นตอนการค้นหา
+### เทคนิคการค้นหา
+1. ใช้ Hybrid search โดยแบ่งเป็น 1. Chroma vector search -> 3 chunk 2. elastic keyword search -> 3 rows หรือ 50%/50%
+2. จากนั้นนำมา รวมกันและทำกระบวนส่ง ข้อมูล, คำค้นหา -> ไปยังกระบวนการ rerank ผ่าน Cohere rerank 3.5 model โดยจะได้ คะแนน และข้อมูล 3 ตำแหน่งที่มีความใกล้เคียงกับคำค้นหาที่สุด
+3. ส่งคืนผลลัพธ์
+### การนำ llm มาประยุกต์ใช้
+1. ทำให้ เทคนิคการค้นหาเป็นเครื่องมือหนึ่งไว้ให้ llm  (hybrid search tool)
+2. เมื่อผู้ใช่สงคำถาม llm จะวิเคราะห์ และสกัด keyword เป็นภาษาอังฤษ จากนั้นทำ toolcalling -> hybrid search tool
+3. ได้รับผลลัพธ์มาตอบให้กับผู้ใช้
 
+## ระบบค้นหาหนังโดยผสมผสาน Traditional Search และ Generative AI 
+### ขั้นตอนการนำเข้าข้อมูล resume 
+1. แปลง file pdf หรือไฟล์อื่นๆ เช่น docx เป็น markdown โดยมี 3 วิธี คือ
+    1. docling with DoclingParseV4DocumentBackend  # แนะนำ ไม่ช้าจนเกินไป
+    2. docling with EasyOcr # ช้าแต่ใช้ในกรณี DoclingParseV4DocumentBackend แปลงข้อมูลไม่ได้
+    3. MistralOCR # แม่นยำสุดแต่มีค่าใช้จ่าย
+2. สกัดข้อมูล markdown โดยใช้ spacy-llm สกัด ทักษะลงใน -> skill list
+3. ส่ง skill list , markdown ไปยัง llm เพื่อสกัดข้อมูลอีกครั้งในโครงสร้าง
+   ```
+   class SkillExperience(BaseModel):
+    skill: list[str]  
+    year: int  
+    position: str 
+
+  class ResumeExtraction(BaseModel):
+    skills_by_position: list[SkillExperience] 
+    job_title: str
+    
+   ```
+4. เก็บข้อมูลเข้า elastic database
 
 
