@@ -188,7 +188,7 @@ http://localhost:9200/courses/_search?pretty ## courses
     year: int  
     position: str 
 
-  class ResumeExtraction(BaseModel):
+   class ResumeExtraction(BaseModel):
     skills_by_position: list[SkillExperience] 
     job_title: str
     
