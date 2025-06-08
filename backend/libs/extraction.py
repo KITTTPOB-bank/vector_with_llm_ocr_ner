@@ -5,8 +5,6 @@ from base_model.model import ResumeExtraction , CourseExtraction
 from spacy_llm.util import assemble
 load_dotenv()
 
-
-
 async def spacy_extraction(markdown: str) -> list:
     skill = []
     base_dir = os.path.dirname(__file__)

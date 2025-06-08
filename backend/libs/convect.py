@@ -79,7 +79,7 @@ async def pdf_to_markdown_EasyOCR(source : str) -> str:
 # ค่าใช้จ่าย Mistral OCR 1 ดอลลาร์ต่อ 1000 หน้า
 async def pdf_to_markdown_MistralOCR(source : str) -> str:
     client = Mistral(api_key=MISTRAL_API_KEY)
-    base64_pdf = encode_pdf(source)
+    base64_pdf = await encode_pdf(source)
     ocr_response = client.ocr.process(
         model="mistral-ocr-latest",
         document={
