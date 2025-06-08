@@ -103,6 +103,11 @@ python start.py
 ![image](https://github.com/user-attachments/assets/7c22aa76-b70f-4a63-854a-f82040bed4ef)
 
 
+### 4. การเพิ่ม resume
+
+#### ตัวอย่าง
+![image](https://github.com/user-attachments/assets/e6dfdefd-b173-4f99-8f0f-3ea8cc17beef)
+
 ## หลังบ้าน
 เข้าไปที่ http://localhost:8000/docs
 🧪 API Endpoints
