@@ -1,4 +1,4 @@
-# หัวข้อที่มี
+![image](https://github.com/user-attachments/assets/7a285174-483c-44b7-8ec9-bf16aceb2350)# หัวข้อที่มี
 1. โครงสร้าง Project
 2. วิธีการติดตั้ง 
 3. ทดสอบการทำงาน
@@ -94,6 +94,12 @@ python start.py
 
 #### log การค้นหา
 ![image](https://github.com/user-attachments/assets/082a3253-de82-45f5-8fae-adecb5861b65)
+
+
+### 3. การทำ Job blue print
+
+#### ตัวอย่าง
+![image](https://github.com/user-attachments/assets/7c22aa76-b70f-4a63-854a-f82040bed4ef)
 
 
 ## หลังบ้าน
