@@ -6,14 +6,30 @@
 
 ```
 .
-├── files/                     # PDF Resume ที่ต้องการประมวลผล
-├── libs/
-│   ├── extraction.py          # แยกข้อมูลจาก Resume / Course
-│   └── convect.py             # แปลง PDF เป็น Markdown
-├── database/
-│   ├── elastic.py             # เชื่อมต่อและบันทึกข้อมูลใน Elasticsearch
-│   └── chroma.py              # ทำ embedding และบันทึกใน ChromaDB
-├── main.py                    # สคริปต์หลักในการประมวลผล
+├── files/                         # PDF Resume ที่ต้องการประมวลผล
+│
+├── libs/                          # ไลบรารีหลักสำหรับการประมวลผล
+│   ├── config.cfg                 # ค่าคอนฟิกของระบบ
+│   ├── course.cfg                 # ข้อมูลคอร์สที่เกี่ยวข้องกับระบบ
+│   ├── extraction.py             # โมดูลสำหรับแยกข้อมูลจาก Resume และ Course
+│   ├── convect.py                # โมดูลสำหรับแปลง PDF เป็น Markdown หรือ Text
+│   └── retrieval.py              # โมดูลสำหรับดึงข้อมูลที่เกี่ยวข้องจากฐานข้อมูล
+│
+├── database/                     # ส่วนเชื่อมต่อฐานข้อมูล
+│   ├── elastic.py                # เชื่อมต่อและจัดการข้อมูลใน Elasticsearch
+│   └── chroma.py                 # ทำ embedding และจัดเก็บใน ChromaDB
+│
+├── agent/                        # ตัวแทน (Agent) สำหรับการสนทนากับ LLM
+│   └── chat.py                   # โมดูลแชตที่ประสานงานกับโมเดล LLM
+│
+├── base_model/                   # โมเดลพื้นฐานหรือ LLM ที่นำมาใช้งาน
+│   └── model.py                  # โหลดและจัดการกับ LLM เช่น OpenAI, HuggingFace
+│
+├── tool/                         # เครื่องมือเสริมสำหรับระบบ
+│   └── factory.py                # สร้าง tool ต่าง ๆ ให้ agent ใช้งานได้แบบไดนามิก
+│
+├── main.py                       # สคริปต์หลักสำหรับการรันระบบ (entry point)
+├── start.py                      # สคริปต์เริ่มต้นระบบหรือสำหรับ deployment
 ```
 
 # วิธีการติดตั้ง และทดสอบ 
@@ -43,6 +59,7 @@ python start.py
 เข้าไปที่ http://localhost:8000/docs
 🧪 API Endpoints
 Method	Endpoint	Description
+```
 POST	/chatJob	โต้ตอบกับระบบตามข้อมูล Resume, Course
 {
   "role": "user",
@@ -51,13 +68,13 @@ POST	/chatJob	โต้ตอบกับระบบตามข้อมูล
 {
   "role": "ai",
   "content": "...."
-} 
-
+}
+```
+```
 POST	/chatMovie	โต้ตอบกับระบบตามข้อมูล Course
-
-
 POST	/course	เพิ่มคอร์สออนไลน์เข้าสู่ระบบ
 POST	/extract	แปลง PDF และดึงข้อมูลจาก Resume
 POST	/clear	ล้างข้อมูลทั้งหมดในระบบ
 POST	/push_movie_data	อัปเดต Index สำหรับ Course
 POST	/rerank	ปรับลำดับความเกี่ยวข้องใหม่
+```
