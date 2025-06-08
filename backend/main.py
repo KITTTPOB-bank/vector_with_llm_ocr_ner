@@ -105,8 +105,9 @@ async def extract_text(
     file: UploadFile = File(...),
     read_by: str = Form("default"),
     desired_job: str = Form("", description="งานที่อยากได้"),       
-    has_worked: bool = Form(False, description="ได้เข้าทำงานแล้วหรือยัง")     
 ):
+    
+ 
     SAVE_DIR = "./files"
     os.makedirs(SAVE_DIR, exist_ok=True)  
     
@@ -152,7 +153,7 @@ async def extract_text(
     try:
         ner = await spacy_extraction(markdown)
         blueprint = await llm_extraction(ner, markdown, "gpt-4.1-mini" )
-        status = await import_skil(blueprint , desired_job, has_worked)
+        status = await import_skil(blueprint , desired_job)
 
         return status
 

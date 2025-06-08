@@ -21,24 +21,91 @@ function App() {
   const [streaming, setStreaming] = useState(false);
   const [mode, setMode] = useState<"job" | "movie">("job");
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedOption, setSelectedOption] = useState("general");
+  const [isModalOpentwo, setIsModalOpentwo] = useState(false);
+  const [selectedOption, setSelectedOption] = useState("default");
   const [fileList, setFileList] = useState<UploadFile<any>[]>([]);
-
+  const [loading, setLoading] = useState(false);
+  const [course, setCourse] = useState({
+    name: "",
+    link: "",
+    course_detail: "",
+  });
   const onChange = (e: RadioChangeEvent) => {
     setSelectedOption(e.target.value);
   };
-
+ 
   const showModal = () => {
     setIsModalOpen(true);
   };
 
+  const showModalTwo = () => {
+    setIsModalOpentwo(true);
+  };
+
+  const handleCancelTwo = () => {
+    setIsModalOpentwo(false);
+  };
   const handleUploadChange = (info: UploadChangeParam) => {
     setFileList(info.fileList);
   };
 
-  const handleOk = (selectedOption: string, upload:  UploadFile<any>[]) => {
-    console.log(selectedOption)
-    setIsModalOpen(false);
+  const handleOk = async (selectedOption: string, upload: UploadFile[]) => {
+    if (upload.length === 0) {
+      alert("กรุณาเลือกไฟล์ก่อน");
+      return;
+    }
+    setLoading(true);
+    const formData = new FormData();
+    formData.append("file", upload[0].originFileObj as Blob);
+    formData.append("read_by", selectedOption);
+    formData.append("desired_job", "");
+    try {
+      const res = await fetch("http://backend:8000/extract", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.detail || "อัปโหลดไม่สำเร็จ");
+      }
+
+      alert(`${data.message} (จำนวน: ${data.indexed_count} รายการ)`);
+      setIsModalOpen(false);
+      setFileList([]);
+    } catch (err: any) {
+      console.error("Error:", err);
+      alert(`เกิดข้อผิดพลาด: ${err.message}`);
+    }
+    setLoading(false);
+  };
+  const handleOkTwo = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch("http://backend:8000/course", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(course),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.detail || "ส่งข้อมูลไม่สำเร็จ");
+      }
+
+      alert(data.message);
+      setIsModalOpentwo(false);
+      setCourse({ name: "", link: "", course_detail: "" });
+    } catch (err: any) {
+      console.error("Error:", err);
+      alert(`เกิดข้อผิดพลาด: ${err.message}`);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleCancel = () => {
@@ -51,12 +118,12 @@ function App() {
     setMessages(newMessages);
     setInputText("");
     setStreaming(true);
-    let url = "http://localhost:8000/chatJob"
+    let url = "http://backend:8000/chatJob"
     if (mode == "job") {
-      url = "http://localhost:8000/chatJob";
+      url = "http://backend:8000/chatJob";
     }
     else {
-      url = "http://localhost:8000/chatMovie";
+      url = "http://backend:8000/chatMovie";
     }
     try {
       const response = await fetch(url, {
@@ -148,7 +215,7 @@ function App() {
             Resume
           </Button>
 
-          <Button variant="solid" icon={<UploadOutlined />} color="cyan" onClick={showModal}>
+          <Button variant="solid" icon={<UploadOutlined />} color="cyan" onClick={showModalTwo}>
             Course
           </Button>
         </Space>
@@ -171,22 +238,59 @@ function App() {
       </div>
 
 
+
+      <Modal
+        title="ส่งข้อมูลคอร์ส"
+        open={isModalOpentwo}
+        onOk={handleOkTwo}
+        onCancel={handleCancelTwo}
+        confirmLoading={loading}
+      >
+        <Input
+          placeholder="ชื่อคอร์ส"
+          value={course.name}
+          onChange={(e) => setCourse({ ...course, name: e.target.value })}
+          className="mb-2"
+        />
+        <Input
+          placeholder="ลิงก์"
+          value={course.link}
+          onChange={(e) => setCourse({ ...course, link: e.target.value })}
+          className="mb-2"
+        />
+        <Input.TextArea
+          rows={5}
+          placeholder="รายละเอียดคอร์ส"
+          value={course.course_detail}
+          onChange={(e) => setCourse({ ...course, course_detail: e.target.value })}
+        />
+      </Modal>
+
       <Modal
         title="เลือกวิธีการสกัดข้อมูลจากไฟล์"
         open={isModalOpen}
         onOk={() => handleOk(selectedOption, fileList)}
         onCancel={handleCancel}
+        confirmLoading={loading}
       >
         <Radio.Group
           onChange={onChange}
           value={selectedOption}
           style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}
         >
-          <Radio value="general">สกัดข้อมูลแบบทั่วไป (แนะนำ)</Radio>
-          <Radio value="easyocr">สกัดข้อมูล โดย EasyOCR</Radio>
+          <Radio value="default">สกัดข้อมูลแบบทั่วไป (แนะนำ)</Radio>
+          <Radio value="easy">สกัดข้อมูล โดย EasyOCR</Radio>
           <Radio value="mistral">
             สกัดข้อมูล โดย Mistral-OCR (มีค่าใช้จ่าย 1000 หน้า ต่อ 1 ดอลลาร์)
           </Radio>
+        </Radio.Group>
+
+        <Radio.Group
+          onChange={onChange}
+          value={selectedOption}
+          style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}
+        >
+
         </Radio.Group>
 
         <Upload

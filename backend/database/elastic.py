@@ -2,22 +2,22 @@ from base_model.model import ResumeExtraction , CourseExtraction
 from elasticsearch import AsyncElasticsearch
 import pandas as pd
 
-es = AsyncElasticsearch("http://localhost:9200")
+es = AsyncElasticsearch("http://elasticsearch:9200")
 
  
 async def connect():
     return es
 
-async def import_skil(experience_list: ResumeExtraction,  desired_job: str, has_worked: bool, index_name: str = "resumes"):
+async def import_skil(experience_list: ResumeExtraction,  desired_job: str,  index_name: str = "resumes"):
     es = await connect()  
+
     count = 0
     for exp in experience_list.skills_by_position:
         doc = {
             "skill": exp.skill,  
             "year": exp.year,
             "position": exp.position.lower(),   
-            "desired_job": experience_list.job_title.lower(),
-            "has_worked": has_worked
+            "desired_job": experience_list.job_title.lower()
         }
         await es.index(index=index_name, document=doc)
         count += 1

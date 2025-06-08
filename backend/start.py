@@ -57,14 +57,13 @@ course = [{
 ]
 
 desired_job = ""
-has_worked = False  
-
+ 
 async def process_pdf(file_path):
     print(f"Processing PDF: {file_path} ...")
     markdown = await pdf_to_markdown(file_path)
     ner = await spacy_extraction(markdown)
     blueprint = await llm_extraction(ner, markdown, "gpt-4.1-mini")
-    status = await import_skil(blueprint, desired_job, has_worked)
+    status = await import_skil(blueprint, desired_job)
     print(f"Finished PDF: {file_path} with status: {status}")
 
 async def process_course(course):
