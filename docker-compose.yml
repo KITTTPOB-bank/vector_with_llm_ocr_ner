@@ -12,7 +12,9 @@
         - elasticnet
       env_file:
         - .env
-
+      dns:
+        - 8.8.8.8
+        - 1.1.1.1
     frontend:
       build:
         context: ./frontend

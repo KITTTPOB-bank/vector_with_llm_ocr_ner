@@ -7,14 +7,8 @@ from dotenv import load_dotenv
 from docling.datamodel.base_models import InputFormat
 from docling.document_converter import DocumentConverter, PdfFormatOption
 from docling.backend.docling_parse_v4_backend import DoclingParseV4DocumentBackend
-import urllib3, socket
-from urllib3.connection import HTTPConnection
+import asyncio
 
-HTTPConnection.default_socket_options = ( 
-    HTTPConnection.default_socket_options + [
-    (socket.SOL_SOCKET, socket.SO_SNDBUF, 2000000), 
-    (socket.SOL_SOCKET, socket.SO_RCVBUF, 2000000)
-    ])
 load_dotenv()
 MISTRAL_API_KEY = os.getenv("MISTRAL_API_KEY")
 warnings.filterwarnings("ignore", category=UserWarning)
@@ -27,7 +21,7 @@ async def encode_pdf(pdf_path):
         return None
 
 
-async def pdf_to_markdown(source: str) -> str:
+def _convert_pdf_to_md(source: str) -> str:
     pipeline_options = PdfPipelineOptions()
     pipeline_options.do_ocr = True
     pipeline_options.do_table_structure = False
@@ -43,6 +37,11 @@ async def pdf_to_markdown(source: str) -> str:
     doc = doc_converter.convert(source)
     return doc.document.export_to_markdown()
 
+async def pdf_to_markdown(source: str) -> str:
+    loop = asyncio.get_event_loop()
+    return await loop.run_in_executor(None, _convert_pdf_to_md, source)
+
+
 async def any_to_markdown(source) -> str:
     converter = DocumentConverter()
     result = converter.convert(source)
@@ -57,14 +56,13 @@ async def pdf_to_markdown_EasyOCR(source : str) -> str:
 
     model_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'model'))
 
-    os.makedirs(model_path, exist_ok=True)
-
     pipeline_options.ocr_options = EasyOcrOptions(
-        lang=["en", "th"],
+        lang=["en"],  
         force_full_page_ocr=True,
         use_gpu=False,
         model_storage_directory=model_path,
-        download_enabled=True,  
+        download_enabled=True,
+        recog_network="english_g2"
     )
     converter = DocumentConverter(
         format_options={

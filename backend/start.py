@@ -77,7 +77,7 @@ async def main():
 
     # 1. อ่าน PDF ทีละไฟล์
     folder = Path("files")
-    pdf_files = sorted(folder.glob("*.pdf"))  # ทำให้เป็นลำดับและ list
+    pdf_files = sorted(folder.glob("*.pdf")) 
     for pdf_file in pdf_files:
         await process_pdf(pdf_file)
 
