@@ -1,4 +1,4 @@
-# หัวข้อที่มี
+![image](https://github.com/user-attachments/assets/7fc3fbb8-8fe5-4b46-b34b-6cbdf9aa201e)![image](https://github.com/user-attachments/assets/0a71cedc-4161-44ee-bb85-d3e1f43d8565)# หัวข้อที่มี
 1. โครงสร้าง Project
 2. วิธีการติดตั้ง 
 3. ทดสอบการทำงาน
@@ -66,7 +66,8 @@ python start.py
 ```
 
 ![image](https://github.com/user-attachments/assets/b6019d0a-294d-4302-b2e5-62c4e01592a9)
-![image](https://github.com/user-attachments/assets/aeaf5b3d-b68b-4e21-8d0f-de75020a678e)
+![image](https://github.com/user-attachments/assets/c3c917c1-e622-4a8e-bd85-f2316874b955)
+![image](https://github.com/user-attachments/assets/548b2071-4ac3-4749-9760-ba1d0869ef3f)
 
 รอจนขึ้น sussecc all task
 
@@ -130,9 +131,12 @@ POST	/rerank	               # สำหรับทดสอบ hybrid search
 # system overview
 
 ## ระบบค้นหาหนังโดยผสมผสาน Traditional Search และ Generative AI 
-### ขั้นตอนการนำเข้า
-1. แปลงข้อมูลรูปแบบ csv เป็น pandas
-2. 
-3. 
+### ขั้นตอนการนำเข้า (ทำในกระบวนการ python start.py)
+1. แปลงข้อมูลรูปแบบ csv -> pandas 
+2. ทำการ Embeddings แต่ละแถว ของ pandas  
+3. นำข้อมูล vector ที่แปลงจาก ข้อ 2 เก็บเข้า Chroma ใน chroma_langchain_db
+4. นำข้อมูล document ที่ได้จากการแปลงเป็น pandas เก็บเข้า elastic db
+### ขั้นตอนการค้นหา
+
 
 
