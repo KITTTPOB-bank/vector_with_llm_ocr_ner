@@ -57,7 +57,7 @@ course = [{
 ]
 
 desired_job = ""
- 
+
 async def process_pdf(file_path):
     print(f"Processing PDF: {file_path} ...")
     markdown = await pdf_to_markdown(file_path)
@@ -74,17 +74,26 @@ async def process_course(course):
 
 async def main():
     print("GET START ......")
+
+    # 1. อ่าน PDF ทีละไฟล์
     folder = Path("files")
-    pdf_files = folder.glob("*.pdf")
+    pdf_files = sorted(folder.glob("*.pdf"))  # ทำให้เป็นลำดับและ list
     for pdf_file in pdf_files:
         await process_pdf(pdf_file)
+
+    # 2. ย้ายข้อมูลเข้า DB
     await moive_to_db()
-    print("sussecc moive_to_db")
+    print("success moive_to_db")
+
+    # 3. ฝัง Embedding
     await embedding_to_chroma()
-    print("sussecc embedding_to_chroma")
+    print("success embedding_to_chroma")
+
+    # 4. ประมวลผลคอร์สทีละรายการ
     for c in course:
         await process_course(c)
-    print("sussecc all task")
+
+    print("success all task")
 
 if __name__ == "__main__":
     asyncio.run(main())
