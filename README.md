@@ -66,7 +66,9 @@ python start.py
 ```
 
 ![image](https://github.com/user-attachments/assets/b6019d0a-294d-4302-b2e5-62c4e01592a9)
+
 ![image](https://github.com/user-attachments/assets/c3c917c1-e622-4a8e-bd85-f2316874b955)
+
 ![image](https://github.com/user-attachments/assets/548b2071-4ac3-4749-9760-ba1d0869ef3f)
 
 รอจนขึ้น sussecc all task
@@ -75,7 +77,14 @@ python start.py
 # ทดสอบการทำงาน
 ## หน้าบ้าน
 1. การแชทพูดคุย หนัง
-   
+
+ตัวอย่างการถาม
+![image](https://github.com/user-attachments/assets/bfa81673-d230-4df4-9810-1778130ffc68)
+
+log การค้นหา
+![image](https://github.com/user-attachments/assets/b982b9e7-ac01-4727-9608-00c5771e4b74)
+
+
 2. การแชทพูดคุย เกี่ยวกับงาน ทักษะ คอร์ส
 
 
