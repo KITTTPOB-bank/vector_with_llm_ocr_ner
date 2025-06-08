@@ -21,20 +21,27 @@ def create_movie_tool() -> list[StructuredTool]:
     tools = []
 
     async def get_movie(query: str) -> str:
+        print("use hybrid_search .... ")
+        print(query)
+
         responed = await hybrid_search(query)
+
+        print(responed)
         return str(responed)
 
     tools.append(structool(
-        "get_movie",
-        "ส่งคำค้นหา เป็นรูปแบบ ภาษาอังกฤษ เน้นเป็น keyword.",
-        get_movie
-    ))
+    "get_movie",
+    "Provide a general search query in English, using keyword-style formatting (e.g., omit stopwords and punctuation).",
+    get_movie
+))
     return tools
 
 def create_tool() -> list[StructuredTool]:
     tools = []
 
     async def recommend_skill_for_position(position: str) -> str:
+        print("use recommend_skill_for_position .... ")
+
         es = await connect()
         query = {
         "size": 0,   
@@ -73,6 +80,8 @@ def create_tool() -> list[StructuredTool]:
         return json.dumps(result, ensure_ascii=False)
     
     async def search_courses_by_skills(skills: list[str]) -> str:
+        print("use search_courses_by_skills .... ")
+
         es = await connect()
         query = {
             "query": {
@@ -103,6 +112,9 @@ def create_tool() -> list[StructuredTool]:
             return str(e)
         
     async def popular_field_by_year(year: int, field: str, size: int = 3) -> str:
+
+        print("use popular_field_by_year .... ")
+        
         es = await connect()
 
         agg_field = f"{field}.keyword"
@@ -136,8 +148,10 @@ def create_tool() -> list[StructuredTool]:
             "most_popular_items": popular_items
         }, ensure_ascii=False)
     
-    async def job_blueprint(year: int, position: str) -> str:
+    async def job_blueprint( position: str) -> str:
         es = await connect()
+
+        print("use job_blueprint .... ")
 
         query_agg = {
             "size": 0,
@@ -149,54 +163,67 @@ def create_tool() -> list[StructuredTool]:
                     }
                 }
             },
-            "aggs": {
-                "popular_skills": {
+           "aggs": {
+                "by_year": {
                     "terms": {
-                        "field": "skill.keyword",
-                        "size": 10
-                    }
-                },
-                "positions": {
-                    "terms": {
-                        "field": "position.keyword",
-                        "size": 10
+                    "field": "year",
+                    "size": 10,
+                    "order": {"_key": "desc"}
                     },
                     "aggs": {
-                        "top_skills": {
-                            "terms": {
-                                "field": "skill.keyword",
-                                "size": 5
+                        "positions": {
+                            "terms": {"field": "position.keyword", "size": 10},
+                            "aggs": {
+                            "top_skills": {
+                                "terms": {"field": "skill.keyword", "size": 5}
+                            }
+                            }
+                        },
+                        "desired_jobs": {
+                            "terms": {"field": "desired_job.keyword", "size": 5},
+                            "aggs": {
+                            "desired_top_skills": {
+                                "terms": {"field": "skill.keyword", "size": 3}
+                            }
                             }
                         }
                     }
                 }
             }
         }
-
+        results_by_year = {}
         res = await es.search(index="resumes", body=query_agg)
         agg = res.get("aggregations", {})
-
-        positions_skills = {}
-        for pos_bucket in agg.get("positions", {}).get("buckets", []):
-            pos = pos_bucket["key"]
-            top_skills = [skill["key"] for skill in pos_bucket["top_skills"]["buckets"]]
-            positions_skills[pos] = top_skills
-
-        popular_skills = [bucket["key"] for bucket in agg.get("popular_skills", {}).get("buckets", [])]
-
-        return json.dumps({
-            "year": year,
-            "position": position,
-            "most_popular_skills_overall": popular_skills,
-            "positions_top_skills": positions_skills
-        }, ensure_ascii=False)
+        for year_bucket in agg.get("by_year", {}).get("buckets", []):
+            year = year_bucket["key"]
     
+            positions_skills = {}
+            for pos_bucket in year_bucket.get("positions", {}).get("buckets", []):
+                pos = pos_bucket["key"]
+                top_skills = [skill["key"] for skill in pos_bucket.get("top_skills", {}).get("buckets", [])]
+                positions_skills[pos] = top_skills
+
+            desired_jobs_skills = {}
+            for dj_bucket in year_bucket.get("desired_jobs", {}).get("buckets", []):
+                job = dj_bucket["key"]
+                top_skills = [skill["key"] for skill in dj_bucket.get("desired_top_skills", {}).get("buckets", [])]
+                desired_jobs_skills[job] = top_skills
+
+            results_by_year[year] = {
+                "positions_top_skills": positions_skills,
+                "desired_jobs_top_skills": desired_jobs_skills 
+            }
+        
+        print(results_by_year)
+
+        return json.dumps(results_by_year, ensure_ascii=False, indent=2)
+
     tools.append(structool(
         "job_blueprint",
-        f"For a given year and job position, summarize the most demanded skills overall and by job position. Current time: {datetime.now()}",
+        "For a given job position, summarize the most demanded skills overall and by job position, returning structured data grouped by year, including popular skills, position-specific skills, and desired job-specific skills.",
         job_blueprint
     ))
-    
+
     tools.append(structool(
         "popular_field_by_year",
         f"Get top N popular values for a given field in the resume index for a specific year. "

@@ -2,7 +2,7 @@ from base_model.model import ResumeExtraction , CourseExtraction
 from elasticsearch import AsyncElasticsearch
 import pandas as pd
 
-es = AsyncElasticsearch("http://elasticsearch:9200")
+es = AsyncElasticsearch("http://localhost:9200")
 
  
 async def connect():

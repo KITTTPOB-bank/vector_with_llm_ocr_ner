@@ -10,7 +10,7 @@ from langchain_chroma import Chroma
 
 load_dotenv()
 
-async def rerank_cohere(docs : list , query: str , top_n: int = 4):
+async def rerank_cohere(docs : list , query: str , top_n: int = 3):
     COHERE_API_KEY = os.getenv("COHERE_API_KEY")
     co = cohere.ClientV2(api_key=COHERE_API_KEY)
     response = co.rerank(
@@ -50,7 +50,7 @@ async def keyword_search(query: str, index_name: str = "movie",  top_k: int = 3)
     return results
 
 
-async def vector_search(query: str, top_k: int = 5):
+async def vector_search(query: str, top_k: int = 3):
     OPENAI_KEY = os.getenv("OPENAI_API_KEY")
   
     embeddings = OpenAIEmbeddings(model="text-embedding-ada-002", api_key=OPENAI_KEY)
