@@ -6,7 +6,6 @@ COPY requirements.txt .
 
 RUN pip install --default-timeout=2000 --no-cache-dir -r requirements.txt
 
-COPY model ./model
 COPY files ./files
 COPY base_model ./base_model
 COPY agent ./agent
