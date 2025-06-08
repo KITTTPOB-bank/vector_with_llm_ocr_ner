@@ -1,4 +1,4 @@
-![image](https://github.com/user-attachments/assets/7a285174-483c-44b7-8ec9-bf16aceb2350)# หัวข้อที่มี
+# หัวข้อที่มี
 1. โครงสร้าง Project
 2. วิธีการติดตั้ง 
 3. ทดสอบการทำงาน
