@@ -105,7 +105,7 @@ python start.py
 
 ### 4. การเพิ่ม resume
 
-#### ตัวอย่าง
+#### ตัวอย่าง (เพิ่มเติม esayocr ต้องโหลดโมเดลครั้งแรกใช้เวลานาน สามารถปรับภาษาใน convect.py)
 ![image](https://github.com/user-attachments/assets/e6dfdefd-b173-4f99-8f0f-3ea8cc17beef)
 
 ## หลังบ้าน
