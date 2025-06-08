@@ -34,6 +34,8 @@
 ├── backend/ 
 ├── .env (ไว้ตรงนี้)
 ```
+
+```
 MISTRAL_API_KEY = ""
 OPENAI_API_KEY=""
 COHERE_API_KEY = ""
