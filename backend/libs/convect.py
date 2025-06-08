@@ -62,7 +62,6 @@ async def pdf_to_markdown_EasyOCR(source : str) -> str:
         use_gpu=False,
         model_storage_directory=model_path,
         download_enabled=True,
-        recog_network="english_g2"
     )
     converter = DocumentConverter(
         format_options={
