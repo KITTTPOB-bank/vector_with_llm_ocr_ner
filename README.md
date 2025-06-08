@@ -87,6 +87,13 @@ python start.py
 
 ### 2. การแชทพูดคุย เกี่ยวกับงาน ทักษะ คอร์ส
 
+#### ตัวอย่างการถาม การแนะนำคอสเรียน
+![image](https://github.com/user-attachments/assets/f5eeb7b8-bcb2-4e2f-b889-e1bc19366a3d)
+
+#### 
+
+#### log การค้นหา
+![image](https://github.com/user-attachments/assets/082a3253-de82-45f5-8fae-adecb5861b65)
 
 
 ## หลังบ้าน
@@ -137,6 +144,12 @@ POST	/push_movie_data	      # เพิ่ม และนำข้อมูล�
 POST	/rerank	               # สำหรับทดสอบ hybrid search
 ```
 
+## database
+```
+http://localhost:9200/movie/_search?pretty ## movie
+http://localhost:9200/resumes/_search?pretty ## resumes
+http://localhost:9200/courses/_search?pretty ## courses
+```
 # system overview
 
 ## ระบบค้นหาหนังโดยผสมผสาน Traditional Search และ Generative AI 
