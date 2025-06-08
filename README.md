@@ -3,7 +3,8 @@
 2. วิธีการติดตั้ง 
 3. ทดสอบการทำงาน
 4. system overview
-
+5. สำหรับติดตั้งภายในเครื่อง
+   
 # โครงสร้าง Project
  ```
 . backend
@@ -194,5 +195,32 @@ http://localhost:9200/courses/_search?pretty ## courses
     
    ```
 4. เก็บข้อมูลเข้า elastic database
+### ขั้นตอนการนำเข้าข้อมูล course 
+1. รับข้อมูลผู้ใช้ แปลงเป็น skill list โดยใช้ llm
+### ขั้นตอนการค้นหาข้อมูล
+1. ใช้ระบบ ai agent รับ msg ผู้ใช้ และใช้เครื่องมือ mapping ข้อมูล resume และ course
+2. มีเครื่องมือ ดังนี้
+   1. job_blueprint โดยจะทำการ summarize ข้อมูลทั้งหมด โดยผู้ใช้สามารถส่ง ตำแหน่งที่สนใจเพื่อทำกระบวนการได้
+   2. popular_field_by_year จะเป็นเครื่องมือ 'skill', 'position'  (ตำแหน่ง), 'desired_job' (งานที่ยื่น) ดูรายการ ที่มีจำนวนเยอะสุดต่อ ปี เช่น ทักษะไหนที่ปีนี้ นิยมสุด หรือ งานที่คนทั่วไปยื่น ปีที่แล้ว งานอะไรนิยมสุด อนาคต สามารถพัฒนาให้เน้นไปเฉพาะสายงานได้
+   3. search_courses_by_skills ค้นหา course จากทักษะที่ต้องการ โดยจะเรียงคอร์สที่มีทักษะตรงมากที่สุดให้กับผู้ใช้
+   4. recommend_skill_for_position แนะนำ ทักษะ จากตำแหน่งที่ระบุ
+3. ai agent ตีความ messages จากนั้น ส่งคืน ผลลัพธ์ให้กับผู้ใช้
+4. เพิ่มเติม หากข้อความมากเกิน 15 conversation จะทำการสรุปส่วนที่เกิน เป็นสรุปการพูดคุยทีผ่านมา และส่งไปพร้อมกับ messages ปัจจุบัน
 
 
+
+# สำหรับติดตั้งภายในเครื่อง
+```
+python 3.11
+
+cd backend
+
+python -m venv skl-project
+skl-project\Scripts\activate
+pip install -r .\requirements.txt
+uvicorn main:app --host=0.0.0.0 --port=8000
+
+cd frontend
+npm i
+npm run start
+```
