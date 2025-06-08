@@ -94,15 +94,23 @@ POST	/chatJob	โต้ตอบกับระบบตามข้อมูล
  },
  {
    "role": "user",
-   "content": "ทักษะ ยอดฮิต สำหรับ สายงาน Full stack .net"
+   "content": "ขอ Blue Print ของ Full stack .net"
  }
 ]
 ```
 
-
-POST	/chatMovie	โต้ตอบกับระบบตามข้อมูล Course
-POST	/course	เพิ่มคอร์สออนไลน์เข้าสู่ระบบ
+POST	/chatMovie	โต้ตอบกับระบบตามข้อมูล Course -> ใช้รูปแบบเดียวกันกับ chatJob
+```
+[
+ {
+   "role": "user",
+   "content": "หนัง แนวดราม่า ที่มีความแอคชั่นหน่อยๆ แนะนำหน่อยคับ"
+ } 
+]
+```
+POST	/course	เพิ่มคอร์สออนไลน์เข้าสู่ระบบ 
 POST	/extract	แปลง PDF และดึงข้อมูลจาก Resume
-POST	/clear	ล้างข้อมูลทั้งหมดในระบบ
-POST	/push_movie_data	อัปเดต Index สำหรับ Course
-POST	/rerank	ปรับลำดับความเกี่ยวข้องใหม่
+POST	/clear	ล้างข้อมูลทั้งหมด ใน elastic database
+POST	/push_movie_data	เพิ่ม และนำข้อมูลลงใน vector/elastic database
+POST	/rerank	สำรหับทดสอบระบบ hybrid search
+
