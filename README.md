@@ -180,7 +180,7 @@ http://localhost:9200/courses/_search?pretty ## courses
 2. เมื่อผู้ใช่สงคำถาม llm จะวิเคราะห์ และสกัด keyword เป็นภาษาอังฤษ จากนั้นทำ toolcalling -> hybrid search tool
 3. ได้รับผลลัพธ์มาตอบให้กับผู้ใช้
 
-## ระบบค้นหาหนังโดยผสมผสาน Traditional Search และ Generative AI 
+## ระบบจัด แนะนำคอร์สเรียน ทักษะ Job Blue Print 
 ### ขั้นตอนการนำเข้าข้อมูล resume 
 1. แปลง file pdf หรือไฟล์อื่นๆ เช่น docx เป็น markdown โดยมี 3 วิธี คือ
     1. docling with DoclingParseV4DocumentBackend  # แนะนำ ไม่ช้าจนเกินไป
