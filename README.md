@@ -224,7 +224,16 @@ cd backend
 python -m venv skl-project
 skl-project\Scripts\activate
 pip install -r .\requirements.txt
+
+[$ docker run -d --name elasticsearch --net somenetwork -p 9200:9200 -p 9300:9300 -e "discovery.type=single-node" elasticsearch:tag
+](https://www.elastic.co/docs/deploy-manage/deploy/self-managed/install-elasticsearch-docker-basic)
+
+es = AsyncElasticsearch("http://localhost:9200")***
+
+pystart.py
+
 uvicorn main:app --host=0.0.0.0 --port=8000
+
 
 cd frontend
 
